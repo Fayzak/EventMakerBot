@@ -21,16 +21,25 @@ def checkuser(function):
                 username = update.message.from_user.username
             else:
                 username = 'none'
-
-            user = User.create(
-                id=update.message.from_user.id,
-                status='user',
-                name=update.message.from_user.first_name,
-                surname=update.message.from_user.last_name,
-                username=username,
-                password='not specified'
-            )
-            user.save()
+            try:
+                user = User.create(
+                    id=update.message.from_user.id,
+                    status='user',
+                    name=update.message.from_user.first_name,
+                    surname=update.message.from_user.last_name,
+                    username=username,
+                    password='not specified'
+                )
+                user.save()
+            except Exception:
+                user = User.create(
+                    id=update.message.from_user.id,
+                    status='user',
+                    name=update.message.from_user.first_name,
+                    username=username,
+                    password='not specified'
+                )
+                user.save()
         function(update, context)
     return check
 

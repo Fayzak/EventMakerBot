@@ -47,7 +47,7 @@ def register(update, context):
                 user.password = first_attempt
                 user.status = 'organizer'
                 user.save()
-                text = "Вы зарегестрированы как Организатор.\n<b><i>Обязательно запомните свой пароль!</i></b>\nЕсли вы хотите выйти из аккаунта, напишите <code>log out</code>"
+                text = "Вы зарегестрированы как Организатор.\n<b><i>Обязательно запомните свой пароль!</i></b>\nЕсли вы хотите выйти из аккаунта, напишите <code>/log out</code>"
                 context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
             else:
                 text = "Введенные пароли не совпадают, попробуйте еще раз!"
@@ -165,7 +165,7 @@ def approval(update, context):
 def places(update, context):
     text = 'Укажите количество мест'
 
-    context.user_data['approval'] = update.message.text
+    context.user_data['approval'] = update.message.text.lower()
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
     context.user_data['state'] = 9

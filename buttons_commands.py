@@ -12,7 +12,7 @@ def btn_handler(update, context):
     if data[0] == 'joinevent':
         event = Event.get(title=data[1])
         users_confirm.clear()
-        if event.approval == 'Нет':
+        if event.approval == 'нет':
             user = User.get(id=query.from_user.id)
             try:
                 old_request = Requests.get(title=event.title, username=f'@{user.username}')
@@ -51,7 +51,7 @@ def btn_handler(update, context):
                             parse_mode=ParseMode.HTML,
                             reply_markup=get_request_buttons(new_request)
                         )
-        elif event.approval == 'Да':
+        elif event.approval == 'да':
             user = User.get(id=query.from_user.id)
             try:
                 old_request = Requests.get(title=event.title, username=f'@{user.username}')

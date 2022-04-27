@@ -10,9 +10,9 @@ class BaseModel(Model):
 
 class User(BaseModel):
     id = IntegerField(primary_key=True)
-    username = CharField()
+    username = CharField(default='nobody')
     name = CharField()
-    surname = CharField()
+    surname = CharField(default='not specified')
     phone = CharField(default='not specified')
     status = CharField()
     password = CharField()
