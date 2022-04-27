@@ -41,7 +41,7 @@ def checkorganizer(function):
         if user.status == 'organizer':
             function(update, context)
         else:
-            text = "Вы не являетесь Организатором.\nЧтобы зарегистрироваться как организатор, напишите команду <code>Регистрация</code>(/register) и задайте пароль два раза через пробел\nЕсли вы уже зарегестрированы, то войдите в аккаунт с помощью /log in пароль"
+            text = "Вы не являетесь Организатором.\nЧтобы зарегистрироваться как организатор, напишите команду <code>/register</code> и задайте пароль два раза через пробел\nЕсли вы уже зарегестрированы, то войдите в аккаунт с помощью <code>/log in</code> <i>пароль</i>"
             context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
     return check
 
@@ -55,7 +55,6 @@ def get_event_info(event):
                f"Стоимость входа: {event.price}\n" \
                f"Количество свободных мест: {event.places}\n" \
                f"Кто идет: {event.members}\n" \
-               f"Повторяемость: {event.repeat}\n" \
                f"Описание: {event.about}\n\n"
     return text
 
@@ -83,13 +82,9 @@ def get_request(request):
 
 def get_request_buttons(request):
     buttons = []
-
+    user = User.get(username=request.username[1:])
     if request.status == 'В обработке':
         buttons.append(InlineKeyboardButton('Одобрить', callback_data=f"@confirm@{request.id}"))
-        buttons.append(InlineKeyboardButton('Отметить', callback_data=f"@response@{request.id}"))
-        buttons.append(InlineKeyboardButton('Одобрить все', callback_data=f"@confirmall@{request.id}"))
-        buttons.append(InlineKeyboardButton('Мест нет', callback_data=f"@decline@{request.id}"))
-    # if request.status == 'Принят':
-    #     buttons.append(InlineKeyboardButton('Завершить заказ', callback_data=f"@complete@{order.id}"))
-    # buttons.append(InlineKeyboardButton('Удалить заказ', callback_data=f"@delete@{order.id}"))
+        buttons.append(InlineKeyboardButton('Отказать', callback_data=f"@reject@{request.id}"))
+        buttons.append(InlineKeyboardButton('Ответить', url=f"tg://user?id={user.id}"))
     return InlineKeyboardMarkup(build_menu(buttons, n_cols=2))

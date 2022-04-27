@@ -1,7 +1,7 @@
 import telegram
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.ext import ConversationHandler
-
+from models import *
 from core import *
 from menus import *
 
@@ -23,7 +23,7 @@ def log(update, context):
                     if (context.args[1] == user.password) and (context.args[1] != 'not specified'):
                         user.status = 'organizer'
                         user.save()
-                        text = "Вы изменили ваш статус на Организатор"
+                        text = "Вы изменили ваш статус на Организатор\nЕсли вы хотите выйти из аккаунта, напишите <code>log out</code>"
                         context.bot.send_message(chat_id=update.effective_chat.id, text=text)
                     else:
                         text = "Неверный пароль! Попробуйте еще раз"
@@ -47,7 +47,7 @@ def register(update, context):
                 user.password = first_attempt
                 user.status = 'organizer'
                 user.save()
-                text = "Вы зарегестрированы как Организатор.\n<b><i>Обязательно запомните свой пароль!</i></b>"
+                text = "Вы зарегестрированы как Организатор.\n<b><i>Обязательно запомните свой пароль!</i></b>\nЕсли вы хотите выйти из аккаунта, напишите <code>log out</code>"
                 context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
             else:
                 text = "Введенные пароли не совпадают, попробуйте еще раз!"
@@ -62,7 +62,7 @@ def register(update, context):
 def create(update, context):
     user = User.get(id=update.message.from_user.id)
     if user.status == 'organizer':
-        text = "Чтобы начать создание мероприятия, нажмите кнопку ниже"
+        text = "Чтобы начать создание мероприятия, нажмите кнопку ниже\nЧтобы отменить создание мероприятия, напишите <code>/cancel</code>"
 
         footer_keyboard = [
             InlineKeyboardButton('Начать', callback_data='@startevent'),
@@ -78,7 +78,7 @@ def create(update, context):
 
         return 0
     elif user.status == 'user':
-        text = "Вы не являетесь Организатором.\nЧтобы зарегистрироваться как организатор, напишите команду <code>Регистрация</code>(/register) и задайте пароль два раза через пробел\nЕсли вы уже зарегестрированы, то войдите в аккаунт с помощью /log in пароль"
+        text = "Вы не являетесь Организатором.\nЧтобы зарегистрироваться как организатор, напишите команду <code>/register</code> и задайте пароль два раза через пробел\nЕсли вы уже зарегестрированы, то войдите в аккаунт с помощью <code>/log in</code> <i>пароль</i>"
         context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
 
 
@@ -93,14 +93,23 @@ def title(update, context):
     return 1
 
 
-def date(update, context):
-    text = 'Укажите дату начала'
+def event_date(update, context):
+    try:
+        context.user_data['title'] = update.message.text
+        event = Event.get(title=context.user_data['title'])
 
-    context.user_data['title'] = update.message.text
+        text = 'Мепроприятие с таким названием уже существует!\nПожалуйста, попробуйте снова и задайте другое название'
+        context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
 
-    context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
-    context.user_data['state'] = 3
-    return 2
+        return ConversationHandler.END
+    except:
+        text = 'Укажите дату начала'
+
+        context.user_data['title'] = update.message.text
+
+        context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
+        context.user_data['state'] = 3
+        return 2
 
 
 def time(update, context):
@@ -144,7 +153,7 @@ def price(update, context):
 
 
 def approval(update, context):
-    text = 'Укажите, можно ли влключить автоматическое одобрение заявок (Да или Нет)'
+    text = 'Укажите, можно ли влключить автоматическое одобрение заявок\n<b>(Строго: <i>Да</i> или <i>Нет</i>)</b>'
 
     context.user_data['price'] = update.message.text
 
@@ -163,8 +172,8 @@ def places(update, context):
     return 8
 
 
-def repeat(update, context):
-    text = 'Укажите повторяемость мероприятия (можно ли провести его снова) (Да или Нет)'
+def about(update, context):
+    text = 'Расскажите участникам о чем ваше мероприятие'
 
     context.user_data['places'] = update.message.text
 
@@ -173,24 +182,14 @@ def repeat(update, context):
     return 9
 
 
-def about(update, context):
-    text = 'Расскажите участникам о чем ваше мероприятие'
-
-    context.user_data['repeat'] = update.message.text
-
-    context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
-    context.user_data['state'] = 11
-    return 10
-
-
 def phone(update, context):
     text = 'Укажите свой номер телефона для связи'
 
     context.user_data['about'] = update.message.text
 
     context.bot.send_message(chat_id=update.effective_chat.id, text=text, parse_mode=ParseMode.HTML)
-    context.user_data['state'] = 12
-    return 11
+    context.user_data['state'] = 11
+    return 10
 
 
 def cancel(update, context):
@@ -213,7 +212,6 @@ def finish_event(update, context):
         price=context.user_data['price'],
         approval=context.user_data['approval'],
         places=context.user_data['places'],
-        repeat=context.user_data['repeat'],
         about=context.user_data['about'],
     )
 

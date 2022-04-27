@@ -37,7 +37,6 @@ class Event(BaseModel):
     approval = CharField()
     places = IntegerField()
     members = CharField(default='Пока никого')
-    repeat = CharField()
     about = CharField()
     hidden = BooleanField(default=0)
 
